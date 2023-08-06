@@ -5,7 +5,7 @@ import pandas as pd
 
 from grab_top_players import *
 
-augments = grab_augment_data()
+augments = grab_augment_list()
 
 silver_augments = {"Augment": [],
                    "Average Winrate": []}
