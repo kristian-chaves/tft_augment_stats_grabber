@@ -41,25 +41,20 @@ def create_augment(tier, score_entry):
 #collects all augments, adds to and returns dictionary
 def grab_augment_list():
     augments = {}
-    tier = 0;
     augment_tiers = ["silver", "gold", "prismatic"]
-    original_link = "https://bunnymuffins.lol/augments/"
+    original_link = "https://lolchess.gg/guide/augments/set9?tier="
 
-    url = original_link
-    page = urlopen(url)
-    html = page.read().decode("utf-8")
-    soup = BeautifulSoup(html, "html.parser")
+    for tier in range(1,4):
+        url = original_link + str(tier)
+        page = urlopen(url)
+        html = page.read().decode("utf-8")
+        soup = BeautifulSoup(html, "html.parser")
 
-    #three tables
-    for table in soup.findAll("figure", {"class": "wp-block-table"}):
-        for tr in table.findAll('tr'):
-            #a = tr.contents
-            a = (tr.find('td')).get_text()
-            if a != "NAME":
-                augments[a] = create_augment(tier, 0)
-        tier += 1
+        for x in soup.findAll("h3", {"class": "guide-augments__title"}):
+            a = x.contents
+            if a:
+                augments[a] = create_augment(tier-1, 0)
         print(f"all {augment_tiers[tier-1]} augments grabbed" )
-
     print("all augments added to list")
     return augments
 
@@ -135,17 +130,7 @@ def output_stats(augments):
     
     for x in augments:
         augment_collections[augments[x][1]] = add_augment_data(augment_collections[augments[x][1]], augments, x)
-        """
-        if augments[x][1] == 0:
-            silver_augments = add_augment_data(silver_augments, augments, x)
-        elif augments[x][1] == 1:
-            gold_augments = add_augment_data(gold_augments, augments, x)
-        elif augments[x][1] == 2:
-            prismatic_augments = add_augment_data(prismatic_augments, augments, x)
-        elif augments[x][1] == 3:
-            misc_augments = add_augment_data(silver_augments, augments, x)
-        """
-        
+    
     df1 = pd.DataFrame(silver_augments)
     df2 = pd.DataFrame(gold_augments)
     df3 = pd.DataFrame(prismatic_augments)

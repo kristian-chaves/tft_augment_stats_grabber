@@ -1,13 +1,16 @@
 from bs4 import BeautifulSoup
 from urllib.request import urlopen
+from grab_top_players import *
 
 
 """
 hosting alternative functions here in case theres an issue with implementation
 """
 
-#lolchss.gg doesnt givee all augments and adding them manually just isnt working/makes me deeply unhappy
-def grab_augment_data():
+
+#lolchess.gg doesnt givee all augments and adding them manually just isnt working/makes me deeply unhappy
+#nvm i found a workaround, lolchess may be optimal
+def grab_augment_list():
     augments = {}
     scores = []
     # augment info: string name, int list scores, int tier, int average
@@ -71,4 +74,26 @@ def grab_augment_data():
     return augments
 
 
-grab_augment_data()
+def grab_augment_list_2():
+    augments = {}
+    tier = 0;
+    augment_tiers = ["silver", "gold", "prismatic"]
+    original_link = "https://bunnymuffins.lol/augments/"
+
+    url = original_link
+    page = urlopen(url)
+    html = page.read().decode("utf-8")
+    soup = BeautifulSoup(html, "html.parser")
+
+    #three tables
+    for table in soup.findAll("figure", {"class": "wp-block-table"}):
+        for tr in table.findAll('tr'):
+            #a = tr.contents
+            a = (tr.find('td')).get_text()
+            if a != "NAME":
+                augments[a] = create_augment(tier, 0)
+        tier += 1
+        print(f"all {augment_tiers[tier-1]} augments grabbed" )
+
+    print("all augments added to list")
+    return augments
