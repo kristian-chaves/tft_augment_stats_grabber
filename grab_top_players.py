@@ -2,12 +2,12 @@ from bs4 import BeautifulSoup
 from urllib.request import urlopen
 #import re
 
-
+#https://tftactics.gg/db/augments
 
 def grab_top_players():
     top_player_list = []
     original_link = "https://lolchess.gg/leaderboards?mode=ranked&region=na&page="
-    for page_number in range(1,11):
+    for page_number in range(1,2):
 
         url = original_link + str(page_number)
         page = urlopen(url)
@@ -21,69 +21,75 @@ def grab_top_players():
                 top_player_list.append(a['href'])
         print(f"grabbed information from page {page_number}" )
 
-    print(top_player_list[999])
     print("grabbed top 1000 players")
     return top_player_list
 
+#creates an augment's data, called by grab augment data, returns a dictionary element
+# if tier unknown, initialize as 4
+def create_augment(tier):
+    scores = []
+    augment_data = [scores, 0, 0] 
+    augment_data[1] = tier
+    return augment_data
+
+#collects all augments, adds to and returns dictionary
 def grab_augment_data():
     augments = {}
-    scores = []
+    tier = 0;
     # augment info: string name, int list scores, int tier, int average
-    augment_data = [scores, 0, 0] 
     augment_tiers = ["silver", "gold", "prismatic"]
-    original_link = "https://lolchess.gg/guide/augments/set9?tier="
+    original_link = "https://bunnymuffins.lol/augments/"
 
-    for tier in range(1,4):
-        url = original_link + str(tier)
-        page = urlopen(url)
-        html = page.read().decode("utf-8")
-        soup = BeautifulSoup(html, "html.parser")
+    url = original_link
+    page = urlopen(url)
+    html = page.read().decode("utf-8")
+    soup = BeautifulSoup(html, "html.parser")
 
-        for x in soup.findAll("h3", {"class": "guide-augments__title"}):
-            a = x.contents
-            if a:
-                augment_data[1] = tier - 1;
-                augments[a[0].strip()] = augment_data.copy()
-                #augments.append(augment_data.copy())
-        print(f"all {augment_tiers[tier-1]} augments grabbed" )
+    #three tables
+    for table in soup.findAll("figure", {"class": "wp-block-table"}):
+        for tr in table.findAll('tr'):
+            #a = tr.contents
+            a = (tr.find('td')).get_text()
+            if a != "NAME":
+                augments[a] = create_augment(tier)
+        tier += 1
+    print(f"all {augment_tiers[tier-1]} augments grabbed" )
 
-    #some augments are missing for some reason, just add them in here
-    #for future make this part more automated
-    #Medium Forge:
-    augment_data = [scores, 0, 0]
-    augments["Job's Done"] = augment_data.copy()
-    augments["Small Forge"] = augment_data.copy()
-    augments["Medium-End Shopping"] = augment_data.copy()
-    augments["Knowledge Download"] = augment_data.copy()
-    augments["It Pays To Learn"] = augment_data.copy()
-    augments["Seeing Double I"] = augment_data.copy()
-    augments["Tiny Grab Bag"] = augment_data.copy()
-    augments["Rolling For Days I"] = augment_data.copy()
-
-    augment_data = [scores, 1, 0]
-    augments["Medium Forge"] = augment_data.copy()
-    augments["The Boss"] = augment_data.copy()
-    augments["Riftwalk"] = augment_data.copy()
-    augments["Winds of War"] = augment_data.copy()
-    augments["Demonflare"] = augment_data.copy()
-    augments["Ravenous Hunter"] = augment_data.copy()
-    augments["Job Well Done"] = augment_data.copy()
-    augments["Knowledge Download II"] = augment_data.copy()
-    augments["It Pays to Learn II"] = augment_data.copy()
-    augments["Big Grab Bag"] = augment_data.copy()
-    augments["Seeing Double II"] = augment_data.copy()
-    augments["Rolling For Days II"] = augment_data.copy()
-    augment_data = [scores, 2, 0]
-    augments["Well-Earned Comforts III"] = augment_data.copy()
-    augments["Large Forge"] = augment_data.copy()
-    augments["Masterful Job"] = augment_data.copy()
-    augments["Knowledge Download III"] = augment_data.copy()
-    augments["It Pays to Learn III"] = augment_data.copy()
-    augments["Seeing Double III"] = augment_data.copy()
-    augments["Giant Grab Bag"] = augment_data.copy()
-    augments["Rolling For Days III"] = augment_data.copy()
-
-
-    
     print("all augments added to list")
+    return augments
+
+def collect_augment_placements(top_player_list, augments):
+    match_history = "/s9/matches/ranked/"
+    player_count = 0
+    for link in top_player_list:
+        for x in range(1, 4):
+
+            url = link + match_history + str(x)
+            page = urlopen(url)
+            html = page.read().decode("utf-8")
+            soup = BeautifulSoup(html, "html.parser")
+
+            matches = soup.find("div", {"class": "profile__match-history-v2__items"}).contents
+            #lines 0,2,...,40 are blank, lines 3,7,...,39 is item data
+            for x in range(1, 41, 4):
+                match = matches[x].contents
+                #placement is at index 01, augments at 07
+                placement_data = (match[1].contents)
+                score = int((placement_data[1].string).replace("#", ""))
+                augment_data = match[7].contents
+                #check length, then add based on appearances
+                for y in range(1, len(augment_data), 2):
+                    augment =  "\n".join([img['alt'] for img in augment_data[y].find_all('img', alt=True)])
+                    #check if the augment exists in the pre-generated list, if it doesnt, create it
+                    if augment in augments:
+                        #pretty ugly solution but couldn't figure out how to get around python adding multiple values in this location
+                        temp_list_1 = augments[augment][0]
+                        temp_list_2 = temp_list_1.copy()
+                        temp_list_2.append(score)
+                        augments[augment][0] = temp_list_2
+                    else:
+                        augments[augment] = create_augment(4)
+
+        player_count+=1
+        print(f"player: {player_count}")
     return augments
