@@ -6,10 +6,10 @@ import pandas as pd
 
 #https://tftactics.gg/db/augments
 
-def grab_top_players(pages):
+def grab_top_players(player_pages):
     top_player_list = []
     original_link = "https://lolchess.gg/leaderboards?mode=ranked&region=na&page="
-    for page_number in range(1,pages+1):
+    for page_number in range(1,player_pages+1):
 
         url = original_link + str(page_number)
         page = urlopen(url)
@@ -21,9 +21,9 @@ def grab_top_players(pages):
             a = td.find('a')
             if a:
                 top_player_list.append(a['href'])
-        print(f"grabbed information from page {page_number}" )
+        print(f"grabbed information from player page {page_number}" )
 
-    print(f"grabbed top {pages*100} players")
+    print(f"grabbed top {player_pages*100} players")
     return top_player_list
 
 #creates an augment's data, called by grab augment data, returns a dictionary element
@@ -60,11 +60,11 @@ def grab_augment_data():
     print("all augments added to list")
     return augments
 
-def collect_augment_placements(matches, top_player_list, augments):
+def collect_augment_placements(match_pages, top_player_list, augments):
     match_history = "/s9/matches/ranked/"
     player_count = 0
     for link in top_player_list:
-        for x in range(1, matches+1):
+        for x in range(1, match_pages+1):
 
             url = link + match_history + str(x)
             page = urlopen(url)

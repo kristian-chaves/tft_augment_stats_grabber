@@ -19,7 +19,6 @@ match_pages = 4
     
 
 if __name__ == '__main__':
-    print("w")
     top_player_list = grab_top_players(player_pages)
     augments = grab_augment_data()
     augments = collect_augment_placements(match_pages, top_player_list, augments)
