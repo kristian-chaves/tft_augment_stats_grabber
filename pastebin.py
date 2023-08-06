@@ -10,7 +10,7 @@ match_history = "/s9/matches/ranked/"
 
 print("data grabbed")
 
-augments = grab_augment_data()
+augments = grab_augment_list()
 score = 0
 # augment info: string name, int list scores, int tier, int average
 #augment_data = ["name", scores, 0, 0] 
