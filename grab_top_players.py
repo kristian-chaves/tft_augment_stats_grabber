@@ -40,7 +40,7 @@ def create_augment(tier, score_entry):
 
 #collects all augments, adds to and returns dictionary
 def grab_augment_list():
-    augments = dict()
+    augments = {}
     augment_tiers = ["silver", "gold", "prismatic"]
     original_link = "https://lolchess.gg/guide/augments/set9?tier="
 
@@ -53,13 +53,8 @@ def grab_augment_list():
         for x in soup.findAll("h3", {"class": "guide-augments__title"}):
             a = x.contents
             if a:
-                augments[a[0].strip()] = create_augment(tier-1, 0)
-
+                augments[a] = create_augment(tier-1, 0)
         print(f"all {augment_tiers[tier-1]} augments grabbed" )
-    # add hero augments - not included in lolchess add for some reason
-    hero_augments = ["The Boss", "Riftwalk", "Winds of War", "Demonflare", "Ravenous Hunter"]
-    for x in hero_augments:
-        augments[x] = create_augment(1, 0)
     print("all augments added to list")
     return augments
 
@@ -91,14 +86,17 @@ def collect_augment_placements(match_pages, top_player_list, augments):
                 augment_data = match[7].contents
                 #check length, then add based on appearances
                 for y in range(1, len(augment_data), 2):
-                    augment = (augment_data[y].find('img', alt=True))['alt']
+                    augment =  "\n".join([img['alt'] for img in augment_data[y].find_all('img', alt=True)])
                     #check if the augment exists in the pre-generated list, if it doesnt, create it
                     if augment in augments:
                         #pretty ugly solution but couldn't figure out how to get around python adding multiple values in this location
-                        augments[augment][0].append(score)
+                        temp_list_1 = augments[augment][0]
+                        temp_list_2 = temp_list_1.copy()
+                        temp_list_2.append(score)
+                        augments[augment][0] = temp_list_2
                     else:
                         augments[augment] = create_augment(3, score)
-                        
+
         player_count+=1
         print(f"player: {player_count}")
         # every 100 data pulls, back up all data
