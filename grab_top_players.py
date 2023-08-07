@@ -9,8 +9,8 @@ import time
 
 def grab_top_players(player_pages):
     top_player_list = []
-    original_link = "https://lolchess.gg/leaderboards?mode=ranked&region=na&page="
-    for page_number in range(1,player_pages+1):
+    original_link = "https://app.mobalytics.gg/tft/leaderboard/na?page="
+    for page_number in range(1, player_pages+1):
 
         url = original_link + str(page_number)
         page = urlopen(url)
@@ -18,13 +18,13 @@ def grab_top_players(player_pages):
         soup = BeautifulSoup(html, "html.parser")
 
         #anchors = [a for a in (td.find('a') for td in soup.findAll('td')) if a]
-        for td in soup.findAll('td'):
-            a = td.find('a')
+        for td in soup.findAll("td", {"class": "m-1hsp9rd e1vl7p310"}):
+            a = td.contents[0]
             if a:
-                top_player_list.append(a['href'])
+                top_player_list.append(a)
         print(f"grabbed information from player page {page_number}" )
 
-    print(f"grabbed top {player_pages*100} players")
+    print(f"grabbed top {3*100} players")
     return top_player_list
 
 #creates an augment's data, called by grab augment data, returns a dictionary element
@@ -119,7 +119,7 @@ def create_excel_column():
 
 def add_augment_data(tier_augment, augments, x):
     tier_augment["Augment"].append(x) 
-    tier_augment["Average Winrate"].append(augments[x][2])
+    tier_augment["Average Placement"].append(augments[x][2])
     tier_augment["Sample Size"].append(len(augments[x][0]))
     return tier_augment
 
