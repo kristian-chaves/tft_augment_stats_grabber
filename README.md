@@ -8,6 +8,7 @@ tft dev team recently made augment winrate stats private. some friends of mine m
 ### random notes:
 - data is output to the excel doc unsorted - you'll have to go into the document and sort the data
 - program will (eventually) crash if excel file is open while running program
+- program takes some time to run, so run it and then leave it afk for a while
 - data will probably be top 4 skewed on the basis that this data comes from the top 1000 players and because of how riot matchmaking works, these players will have to play in lobbies where most other players will be decently worse than them
 - because this pulls from the last n*10 games played and not every top player is a degenerate rat, some data may be from previous patches. because of how decay works, this probably wont be too much of an issue, but i definitely saw some top players with like 70 or so ranked games played total this set, so chances are that some data may be outdated. i think as the set goes on, the average challenger lp will go up and degenerate rat players will be more incentivized for grabbing augment data
 - some games only have 2, 1, or 0 augment entries because riot has fully privatized what hero augments are taken each game
