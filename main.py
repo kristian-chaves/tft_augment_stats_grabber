@@ -1,12 +1,12 @@
-from grab_top_players import *
+from functions import *
 
 top_player_list = []
 augments = {}
 
 # insert how many player pages desired - 
-    # each page translates to 30 players
-    # recommended amount: 10
-player_pages = 50
+    # each page translates to 100 players
+    # max pages: 10
+player_pages = 10
 
 # insert how many match pages you want to pull from
     # translates to 10 matches
@@ -15,7 +15,7 @@ player_pages = 50
     # if a patch has recently released will result
     # in data from the previous patch being pulled
     # recommended amount: 4
-match_pages = 2
+match_pages = 4
     
 
 if __name__ == '__main__':
@@ -24,4 +24,4 @@ if __name__ == '__main__':
     augments = collect_augment_placements(match_pages, top_player_list, augments)
     #augments = generate_average_score(augments)
     #output_stats(augments)
-    print(f"data from {player_pages * 30 * match_pages * 10} matches pulled")
+    print(f"data from {player_pages * 100 * match_pages * 10} matches pulled")

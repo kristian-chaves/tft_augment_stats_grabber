@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup
 from urllib.request import urlopen
-from grab_top_players import *
+from functions import *
 
 
 """
@@ -8,8 +8,8 @@ hosting alternative functions here in case theres an issue with implementation
 """
 
 
-#lolchess.gg doesnt givee all augments and adding them manually just isnt working/makes me deeply unhappy
-#nvm i found a workaround, lolchess may be optimal
+# lolchess.gg doesnt givee all augments and adding them manually just isnt working/makes me deeply unhappy
+# nvm i found a workaround, lolchess may be optimal
 def grab_augment_list():
     augments = {}
     scores = []
@@ -98,68 +98,3 @@ def grab_augment_list_2():
     print("all augments added to list")
     return augments
 
-#grab top players from lolchess.gg
-def grab_top_players(player_pages):
-    top_player_list = []
-    original_link = "https://lolchess.gg/leaderboards?mode=ranked&region=na&page="
-    for page_number in range(1,player_pages+1):
-
-        url = original_link + str(page_number)
-        page = urlopen(url)
-        html = page.read().decode("utf-8")
-        soup = BeautifulSoup(html, "html.parser")
-
-        #anchors = [a for a in (td.find('a') for td in soup.findAll('td')) if a]
-        for td in soup.findAll('td'):
-            a = td.find('a')
-            if a:
-                top_player_list.append(a['href'])
-        print(f"grabbed information from player page {page_number}" )
-
-    print(f"grabbed top {player_pages*100} players")
-    return top_player_list
-
-#version that works with grab_top_players using lolchess
-def collect_augment_placements(match_pages, top_player_list, augments):
-    match_history = "/s9/matches/ranked/"
-    player_count = 0
-    for link in top_player_list:
-        for x in range(1, match_pages+1):
-            url = link + match_history + str(x)
-            sleep = 0
-            for i in range(4):
-                try:
-                    html = urlopen(url).read()
-                    break
-                except:
-                    if i==3:
-                        raise
-                    time.sleep(sleep)
-                    sleep += 5
-            soup = BeautifulSoup(html, "html.parser")
-
-            matches = soup.find("div", {"class": "profile__match-history-v2__items"}).contents
-            #lines 0,2,...,40 are blank, lines 3,7,...,39 is item data
-            for x in range(1, 41, 4):
-                match = matches[x].contents
-                #placement is at index 01, augments at 07
-                placement_data = (match[1].contents)
-                score = int((placement_data[1].string).replace("#", ""))
-                augment_data = match[7].contents
-                #check length, then add based on appearances
-                for y in range(1, len(augment_data), 2):
-                    augment = (augment_data[y].find('img', alt=True))['alt']
-                    #check if the augment exists in the pre-generated list, if it doesnt, create it
-                    if augment in augments:
-                        #pretty ugly solution but couldn't figure out how to get around python adding multiple values in this location
-                        augments[augment][0].append(score)
-                    else:
-                        augments[augment] = create_augment(3, score)
-                        
-        player_count+=1
-        print(f"player: {player_count}")
-        # every 100 data pulls, back up all data
-        if(player_count % 100 == 0):
-            augments = generate_average_score(augments)
-            output_stats(augments)
-    return augments
