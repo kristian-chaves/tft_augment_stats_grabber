@@ -9,8 +9,8 @@ import time
 
 def grab_top_players(player_pages):
     top_player_list = []
-    original_link = "https://app.mobalytics.gg/tft/leaderboard/na?page="
-    for page_number in range(1, player_pages+1):
+    original_link = "https://lolchess.gg/leaderboards?mode=ranked&region=na&page="
+    for page_number in range(1,player_pages+1):
 
         url = original_link + str(page_number)
         page = urlopen(url)
@@ -18,13 +18,13 @@ def grab_top_players(player_pages):
         soup = BeautifulSoup(html, "html.parser")
 
         #anchors = [a for a in (td.find('a') for td in soup.findAll('td')) if a]
-        for td in soup.findAll("td", {"class": "m-1hsp9rd e1vl7p310"}):
-            a = td.contents[0]
+        for td in soup.findAll('td'):
+            a = td.find('a')
             if a:
-                top_player_list.append(a)
+                top_player_list.append(a['href'])
         print(f"grabbed information from player page {page_number}" )
 
-    print(f"grabbed top {3*100} players")
+    print(f"grabbed top {player_pages*100} players")
     return top_player_list
 
 #creates an augment's data, called by grab augment data, returns a dictionary element
@@ -40,7 +40,7 @@ def create_augment(tier, score_entry):
 
 #collects all augments, adds to and returns dictionary
 def grab_augment_list():
-    augments = {}
+    augments = dict()
     augment_tiers = ["silver", "gold", "prismatic"]
     original_link = "https://lolchess.gg/guide/augments/set9?tier="
 
@@ -53,8 +53,13 @@ def grab_augment_list():
         for x in soup.findAll("h3", {"class": "guide-augments__title"}):
             a = x.contents
             if a:
-                augments[a] = create_augment(tier-1, 0)
+                augments[a[0].strip()] = create_augment(tier-1, 0)
+
         print(f"all {augment_tiers[tier-1]} augments grabbed" )
+    # add hero augments - not included in lolchess add for some reason
+    hero_augments = ["The Boss", "Riftwalk", "Winds of War", "Demonflare", "Ravenous Hunter"]
+    for x in hero_augments:
+        augments[x] = create_augment(1, 0)
     print("all augments added to list")
     return augments
 
@@ -86,17 +91,14 @@ def collect_augment_placements(match_pages, top_player_list, augments):
                 augment_data = match[7].contents
                 #check length, then add based on appearances
                 for y in range(1, len(augment_data), 2):
-                    augment =  "\n".join([img['alt'] for img in augment_data[y].find_all('img', alt=True)])
+                    augment = (augment_data[y].find('img', alt=True))['alt']
                     #check if the augment exists in the pre-generated list, if it doesnt, create it
                     if augment in augments:
                         #pretty ugly solution but couldn't figure out how to get around python adding multiple values in this location
-                        temp_list_1 = augments[augment][0]
-                        temp_list_2 = temp_list_1.copy()
-                        temp_list_2.append(score)
-                        augments[augment][0] = temp_list_2
+                        augments[augment][0].append(score)
                     else:
                         augments[augment] = create_augment(3, score)
-
+                        
         player_count+=1
         print(f"player: {player_count}")
         # every 100 data pulls, back up all data
@@ -117,7 +119,7 @@ def create_excel_column():
 
 def add_augment_data(tier_augment, augments, x):
     tier_augment["Augment"].append(x) 
-    tier_augment["Average Placement"].append(augments[x][2])
+    tier_augment["Average Winrate"].append(augments[x][2])
     tier_augment["Sample Size"].append(len(augments[x][0]))
     return tier_augment
 
@@ -148,4 +150,3 @@ def output_stats(augments):
         worksheet.set_column(0, 1, column_width)
         worksheet.set_column(2, 2, 15)    
     writer.close()
-
