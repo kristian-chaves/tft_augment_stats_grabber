@@ -1,4 +1,5 @@
-# tft_stats_attempt
+# tft_augment_stats_grabber
+
 mortdog taught me that stats are a lie and that i should never believe them
 
 ## project notes
