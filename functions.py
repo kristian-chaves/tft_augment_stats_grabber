@@ -63,7 +63,7 @@ def grab_augment_list():
     print("all augments added to list")
     return augments
 
-def collect_augment_placements(match_pages, top_player_list, augments):
+def collect_augment_placements(match_pages, player_pages, top_player_list, augments):
     match_history = "/s9/matches/ranked/"
     player_count = 0
     for link in top_player_list:
@@ -104,7 +104,7 @@ def collect_augment_placements(match_pages, top_player_list, augments):
         # every 100 data pulls, back up all data
         if(player_count % 100 == 0):
             augments = generate_average_score(augments)
-            output_stats(augments)
+            output_stats(augments, player_pages, match_pages)
     return augments
 
 def generate_average_score(augments):
@@ -113,7 +113,7 @@ def generate_average_score(augments):
             augments[x][2] = round(mean(augments[x][0]), 2)
     return augments
 
-def create_excel_column():
+def create_excel_sheet():
     tier_augments =  {"Augment": [], "Average Winrate": [], "Sample Size": []}
     return tier_augments
 
@@ -123,13 +123,15 @@ def add_augment_data(tier_augment, augments, x):
     tier_augment["Sample Size"].append(len(augments[x][0]))
     return tier_augment
 
-def output_stats(augments):
-    silver_augments = create_excel_column()
-    gold_augments = create_excel_column()
-    prismatic_augments = create_excel_column()
-    misc_augments = create_excel_column()
+def output_stats(augments, player_pages, match_pages):
+    silver_augments = create_excel_sheet()
+    gold_augments = create_excel_sheet()
+    prismatic_augments = create_excel_sheet()
+    misc_augments = create_excel_sheet()
     augment_collections = [silver_augments, gold_augments, prismatic_augments, misc_augments]
-    
+    info_page = {"Players Pulled From" : [player_pages * 100, ""],
+                 "Matches Pulled per Player" : [match_pages * 10, ""]}
+
     for x in augments:
         augment_collections[augments[x][1]] = add_augment_data(augment_collections[augments[x][1]], augments, x)
     
@@ -137,13 +139,14 @@ def output_stats(augments):
     df2 = pd.DataFrame(gold_augments)
     df3 = pd.DataFrame(prismatic_augments)
     df4 = pd.DataFrame(misc_augments)
+    df5 = pd.DataFrame(info_page)
 
     path = "augment_data.xlsx"  
-    sheets = [df1, df2, df3, df4]
-    tier = ["silver", "gold", "prismatic", "misc"]
+    sheets = [df1, df2, df3, df4, df5]
+    tier = ["silver", "gold", "prismatic", "misc", "sheet_info"]
 
     writer = pd.ExcelWriter(path, engine='xlsxwriter')
-    for x in range(0,4):
+    for x in range(0,5):
         sheets[x].to_excel(writer, sheet_name=tier[x], index = False)
         column_width = 25
         worksheet = writer.sheets[tier[x]]
